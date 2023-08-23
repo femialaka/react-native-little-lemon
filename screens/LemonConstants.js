@@ -1,0 +1,31 @@
+
+const lemonConstants = {
+    appName: 'Little Lemon',
+    intro: 'We are a family owned Mediterranean restaurant, focused on traditional recipes served with a modern twist',
+    order: 'Order Take Away',
+    enterSearch: 'Enter search phrase',
+    drinks: 'Drinks',
+    deserts: 'Deserts',
+    mains: 'Mains',
+    starter: 'Starters',
+    orderForDelivery: 'ORDER FOR DELIVERY!',
+    congratulations: 'Congratulations!',
+    youHaveRegistered: 'You have registered successfully!',
+    personalDetails: 'Personal Information',
+    next: 'Next',
+    register: 'Register',
+    logout: 'Logout',
+    getToKnowYou: "Let\'s get to know you",
+    logo: 'logo',
+    firstName: 'First name',
+    email: 'Email',
+    emailErrorMessage: 'invalid email',
+    emailEmptyError: 'Please enter your email',
+    lastNameError: 'Please enter your name',
+    firstNameError: 'Please enter your name',
+    profile: 'profile picture',
+    littleLemon: 'Little Lemon',
+    chicago: 'Chicago',
+  };
+
+  export default lemonConstants;
