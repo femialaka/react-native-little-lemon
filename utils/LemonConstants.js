@@ -1,6 +1,7 @@
 
 const lemonConstants = {
     appName: 'Little Lemon',
+    littleLemonRestaurant: 'Little Lemon restaurant',
     intro: 'We are a family owned Mediterranean restaurant, focused on traditional recipes served with a modern twist',
     order: 'Order Take Away',
     enterSearch: 'Enter search phrase',

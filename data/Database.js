@@ -1,17 +1,11 @@
 import * as SQLite from "expo-sqlite";
 
-const db = SQLite.openDatabase('mydb.db'); // Replace 'mydb.db' with your desired database name
+const db = SQLite.openDatabase('mydb.db');
 
 const initializeTable = () => {
   db.transaction(tx => {
     tx.executeSql(
-      `CREATE TABLE IF NOT EXISTS menu_items
-      (id INTEGER PRIMARY KEY AUTOINCREMENT,
-       name TEXT,
-       price TEXT,
-       description TEXT,
-       image TEXT,
-       category TEXT);`,
+      "create table if not exists menu_items (id integer primary key not null, name text, price text, description text, image text, category text);",
       [],
       () => {
         console.log('Table created successfully');
@@ -27,9 +21,9 @@ const insertData = jsonData => {
   jsonData.map(item => {
     db.transaction(tx => {
       tx.executeSql(
-        `INSERT INTO menu_items (name, price, description, image, category)
-         VALUES (?, ?, ?, ?, ?);`,
-        [item.name, item.price.toString(), item.description, item.image, item.category],
+        `INSERT INTO menu_items (id, name, price, description, image, category)
+         VALUES (?,?, ?, ?, ?, ?);`,
+        [item.id, item.name, item.price.toString(), item.description, item.image, item.category],
         () => {
           console.log('Data inserted successfully');
         },
@@ -41,21 +35,15 @@ const insertData = jsonData => {
   });
 };
 
-  const fetchMenuItems = (callback) => {
+async function fetchMenuItems() {
+  return new Promise(resolve => {
     db.transaction(tx => {
-      tx.executeSql(
-        'SELECT * FROM menu_items',
-        [],
-        (_, { rows }) => {
-          const data = rows._array;
-          callback(data);
-        },
-        error => {
-          console.error('Error fetching menu items:', error);
-        }
-      );
+      tx.executeSql("SELECT * FROM menu_items", [], (_, { rows }) => {
+        resolve(rows._array);
+      });
     });
-  };
+  });
+}
 
   async function filterByQueryAndCategories(query = '', activeCategories) {
     //console.log(`Query: ${query}  activeCategories: ${activeCategories}`)

@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from "react";
 import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, Image } from "react-native";
-import lemonConstants from "./LemonConstants";
+import lemonConstants from "../utils/LemonConstants";
 import { StatusBar } from "expo-status-bar";
 import Avatar from "./Avatar";
 import CheckBox from "expo-checkbox";

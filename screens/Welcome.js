@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Pressable, BackHandler } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
-import lemonConstants from "./LemonConstants";
+import lemonConstants from "../utils/LemonConstants";
 import { useFonts } from "expo-font";
 
 const Welcome = ({ navigation }) => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {StyleSheet,TextInput,Button,Text,View,Image,Pressable, ScrollView, SafeAreaView,KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard} from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import lemonConstants from "./LemonConstants";
+import lemonConstants from "../utils/LemonConstants";
 import { useFonts } from "expo-font";
 import validator from 'validator';
 

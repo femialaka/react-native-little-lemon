@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable, Image } from "react-native";
-import lemonConstants from "./LemonConstants";
+import lemonConstants from "../utils/LemonConstants";
 import { useFonts } from "expo-font";
 
 const MenuItem = ({ menuItem }) => {
@@ -18,7 +18,7 @@ const MenuItem = ({ menuItem }) => {
       <View style={styles.menuItemDetailColumn}>
         <Text style={styles.menuItemTitle}>{menuItem.name}</Text>
         <Text style={styles.menuItemDescription}>{menuItem.description}</Text>
-        <Text style={styles.menuItemPrice}>{menuItem.price}</Text>
+        <Text style={styles.menuItemPrice}>${menuItem.price}</Text>
       </View>
       <View style={styles.menuItemImageColumn}>
         <Image

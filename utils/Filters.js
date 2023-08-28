@@ -14,7 +14,7 @@ const Filters = ({ onChange, selections, sections }) => {
             alignItems: "center",
             padding: 8,
             backgroundColor: selections[index] ? "#EE9972" : "#495E57",
-            borderWidth: 1,
+            borderWidth: 2,
             borderColor: "white",
           }}
         >
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     backgroundColor: "green",
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
+    marginTop:12
   },
 });
 

@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import {View,Text,StyleSheet,ScrollView,TextInput,Pressable,Image,BackHandler, SafeAreaView, FlatList} from "react-native";
+import {View,Text,Alert,StyleSheet,ScrollView,TextInput,Pressable,Image,BackHandler, SafeAreaView, SectionList} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import lemonConstants from "./LemonConstants";
+import lemonConstants from "../utils/LemonConstants";
 import MenuItem from "./MenuItem";
 import { useFonts } from "expo-font";
+import Constants from "expo-constants";
 import Avatar from "./Avatar";
 import { filterByQueryAndCategories, initializeTable, insertData, fetchMenuItems } from '../data/Database'; // Update the path accordingly
 import Filters from '../utils/Filters';
-import { useUpdateEffect } from "../utils/UpdateEffect";
+import { useUpdateEffect, getSectionListData } from "../utils/Utils";
 import { useIsFocused } from "@react-navigation/native";
 import { Searchbar } from 'react-native-paper';
 import debounce from "lodash.debounce";
@@ -33,8 +34,17 @@ const Home = ({ navigation }) => {
     try {
       const response = await fetch(API_URL);
       const json = await response.json();
-      setData(json.menu);
-      insertData(json.menu);
+
+      const menu = json.menu.map((item, index) => ({
+        id: index + 1,
+        name: item.name,
+        price: item.price.toString(),
+        description: item.description,
+        image: item.image,
+        category: item.category,
+      }));
+      
+      return menu;
     } catch (error) {
       console.error(`Error: ${error}`);
     }
@@ -42,7 +52,7 @@ const Home = ({ navigation }) => {
 
   useEffect(() => {
     const backAction = () => {
-      return true; // or true to handle the back button press
+      return true; // true to handle the back button press
     };
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
@@ -52,17 +62,25 @@ const Home = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    initializeTable();
-
-    fetchMenuItems((data) => {
-      if (data.length > 0) {
-        setData(data);
-        //DATABASE was loaded
-      } else {
-        //LOAD from API to Database
-        fetchData();
+    (async () => {
+      let menuItems = [];
+      try {
+        await initializeTable();
+        menuItems = await fetchMenuItems();
+        if (!menuItems.length) {
+          menuItems = await fetchData();
+          const sectionListDataFromApi = getSectionListData(menuItems);
+          setData(sectionListDataFromApi);
+          insertData(menuItems);
+        }
+        else {
+          const sectionListData = getSectionListData(menuItems);
+          setData(sectionListData);
+        }
+      } catch (e) {
+        console.log(e.message);
       }
-    });
+    })();
   }, []);
 
   const renderItem = ({ item }) => <MenuItem menuItem={item} />;
@@ -113,7 +131,8 @@ const Home = ({ navigation }) => {
           query,
           activeCategories
         );
-        setData(menuItems);
+        const sectionListData = getSectionListData(menuItems);
+        setData(sectionListData);
       } catch (e) {
         //Alert.alert(e.message);
       }
@@ -167,33 +186,31 @@ const Home = ({ navigation }) => {
         </Pressable>
       </View>
       <View style={styles.hero}>
-        <Text style={styles.heroTitle}>{lemonConstants.littleLemon}</Text>
-        <Text style={styles.heroSubTitle}>{lemonConstants.chicago}</Text>
-        <View style={styles.heroRow01}>
-          <View style={styles.heroLeftRow01}>
-            <Text style={styles.heroDescription}>{lemonConstants.intro}</Text>
+        <Text style={styles.heroHeader}>{lemonConstants.littleLemon}</Text>
+        <View style={styles.heroContainer}>
+          <View style={styles.heroContent}>
+            <Text style={styles.heroSubHeader}>{lemonConstants.chicago}</Text>
+            <Text style={styles.heroIntroText}>
+              {lemonConstants.intro}
+            </Text>
           </View>
-
-          <View style={styles.heroRightRow01}>
-            <Image
-              style={styles.heroImage}
-              source={require("../assets/images/Heroimage.png")}
-              resizeMode="contain"
-            />
-          </View>
-        </View>
-        <View style={styles.searchBox}>
-          <Searchbar
-            placeholder="Search"
-            placeholderTextColor="white"
-            onChangeText={handleSearchChange}
-            value={searchBarText}
-            style={styles.searchBar}
-            iconColor="white"
-            inputStyle={{ color: "white" }}
-            elevation={0}
+          <Image
+            style={styles.heroImage}
+            source={require("../assets/images/Heroimage.png")}
+            accessible={true}
+            accessibilityLabel={lemonConstants.littleLemonRestaurant}
           />
         </View>
+        <Searchbar
+          placeholder="Search"
+          placeholderTextColor="#495e57"
+          onChangeText={handleSearchChange}
+          value={searchBarText}
+          style={styles.searchBar}
+          iconColor="#495e57"
+          inputStyle={{ color: "#495e57" }}
+          elevation={3}
+        />
       </View>
       <View style={styles.orders}>
         <View style={styles.ordersHeader}>
@@ -210,11 +227,15 @@ const Home = ({ navigation }) => {
       </View>
 
       <View style={styles.menuContainer}>
-        <FlatList
-          data={data}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.name}
-        />
+      <SectionList
+        style={styles.sectionList}
+        sections={data}
+        keyExtractor={item => item.id}
+        renderItem={renderItem}
+        renderSectionHeader={({ section: { name } }) => (
+          <Text style={styles.itemHeader}>{name}</Text>
+        )}
+      />
       </View>
     </SafeAreaView>
   );
@@ -223,8 +244,8 @@ const Home = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: "column",
-    paddingTop: 30,
+    backgroundColor: "#fff",
+    paddingTop: Constants.statusBarHeight,
   },
   logo: {
     height: 75,
@@ -239,61 +260,52 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   header: {
-    flex: 0.6,
+    padding: 12,
     flexDirection: "row",
-    width: "100%",
-    justifyContent: "space-between",
+    justifyContent: "center"
   },
   hero: {
-    flex: 2,
-    width: "100%",
-    backgroundColor: "#495E57",
-    flexDirection: "column",
+    backgroundColor: "#495e57",
+    padding: 15,
   },
-  heroRow01: {
-    marginTop: 12,
-    width: "100%",
-    flex: 1,
-    flexDirection: "row",
-    paddingHorizontal: 12,
-  },
-  heroLeftRow01: {
-    flex: 2,
-  },
-  heroRightRow01: {
-    flex: 1,
-  },
-  heroRow02: {},
-  heroTitle: {
+  heroHeader: {
+    color: "#f4ce14",
     fontSize: 54,
-    color: "yellow",
-    paddingStart: 12,
     fontFamily: "MarkaziTextRegular",
   },
-  heroSubTitle: {
-    fontSize: 28,
-    color: "white",
-    paddingStart: 12,
-    fontFamily: "KarlaRegular",
-    marginTop: -30,
+  heroSubHeader: {
+    color: "#fff",
+    fontSize: 36,
+    fontFamily: "MarkaziTextRegular",
+    marginTop: -36,
   },
-  heroDescription: {
-    fontSize: 14,
-    color: "white",
+  heroIntroText: {
+    color: "#fff",
     fontFamily: "KarlaRegular",
+    fontSize: 14,
+  },
+  heroContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  heroContent: {
+    flex: 1,
   },
   heroImage: {
-    height: 130,
-    width: 120,
-    borderRadius: 20,
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+  },
+  sectionList: {
+    paddingHorizontal: 16,
   },
   searchBox: {
     paddingHorizontal: 12,
     alignItems: "center",
   },
   searchBar: {
-    marginBottom: 24,
-    backgroundColor: "gray",
+    marginTop: 15,
+    backgroundColor: "#e4e4e4",
     shadowRadius: 0,
     shadowOpacity: 0,
   },
@@ -338,6 +350,15 @@ const styles = StyleSheet.create({
   },
   menuContainer: {
     flex: 1,
+  },
+  itemHeader: {
+    fontSize: 22,
+    paddingVertical: 2,
+    paddingHorizontal: 12,
+    color: "#495e57",
+    backgroundColor: "#fbe5db",
+    borderRadius: 9,
+    fontFamily: "KarlaRegular",
   },
 });
 
