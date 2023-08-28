@@ -19,7 +19,7 @@ const Avatar = ({ text }) => {
       alignItems: 'center',
     },
     text: {
-      color: 'black', // Text color
+      color: 'black',
       fontSize: 36,
       fontWeight: '600'
     },

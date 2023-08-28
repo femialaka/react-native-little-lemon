@@ -1,16 +1,32 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import {View,Text,Alert,StyleSheet,ScrollView,TextInput,Pressable,Image,BackHandler, SafeAreaView, SectionList} from "react-native";
+import {
+  View,
+  Text,
+  Alert,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  Pressable,
+  Image,
+  SafeAreaView,
+  SectionList,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import lemonConstants from "../utils/LemonConstants";
 import MenuItem from "./MenuItem";
 import { useFonts } from "expo-font";
 import Constants from "expo-constants";
 import Avatar from "./Avatar";
-import { filterByQueryAndCategories, initializeTable, insertData, fetchMenuItems } from '../data/Database'; // Update the path accordingly
-import Filters from '../utils/Filters';
+import {
+  filterByQueryAndCategories,
+  initializeTable,
+  insertData,
+  fetchMenuItems,
+} from "../data/Database"; // Update the path accordingly
+import Filters from "../utils/Filters";
 import { useUpdateEffect, getSectionListData } from "../utils/Utils";
 import { useIsFocused } from "@react-navigation/native";
-import { Searchbar } from 'react-native-paper';
+import { Searchbar } from "react-native-paper";
 import debounce from "lodash.debounce";
 
 const Home = ({ navigation }) => {
@@ -43,23 +59,12 @@ const Home = ({ navigation }) => {
         image: item.image,
         category: item.category,
       }));
-      
+
       return menu;
     } catch (error) {
       console.error(`Error: ${error}`);
     }
   };
-
-  useEffect(() => {
-    const backAction = () => {
-      return true; // true to handle the back button press
-    };
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
-    );
-    return () => backHandler.remove();
-  }, []);
 
   useEffect(() => {
     (async () => {
@@ -72,8 +77,7 @@ const Home = ({ navigation }) => {
           const sectionListDataFromApi = getSectionListData(menuItems);
           setData(sectionListDataFromApi);
           insertData(menuItems);
-        }
-        else {
+        } else {
           const sectionListData = getSectionListData(menuItems);
           setData(sectionListData);
         }
@@ -101,9 +105,34 @@ const Home = ({ navigation }) => {
     }
   };
 
+  const setUserAuth = async () => {
+    const userAuth = { isOnboarded: true };
+    try {
+      await AsyncStorage.setItem("user_auth", JSON.stringify(userAuth));
+    } catch (error) {
+      console.error("HOME: Error saving user Auth:", error);
+    } finally {
+      getUserAuth();
+    }
+  };
+
+  const getUserAuth = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem("user_auth");
+      if (jsonValue) {
+        const userAuth = JSON.parse(jsonValue);
+      }
+    } catch (error) {
+      console.error("HOME: Error getting user Auth:", error);
+    }
+  };
+
+  useEffect(() => {
+    setUserAuth();
+  }, []);
+
   useEffect(() => {
     getUserData();
-    
   }, [isFocused]);
 
   const lookup = useCallback((q) => {
@@ -173,7 +202,7 @@ const Home = ({ navigation }) => {
           <View style={styles.avatar}>
             {profilePicture !== null ? (
               <Image
-              style={styles.profilePic}
+                style={styles.profilePic}
                 source={{ uri: profilePicture }}
                 resizeMode="contain"
                 accessible={true}
@@ -190,9 +219,7 @@ const Home = ({ navigation }) => {
         <View style={styles.heroContainer}>
           <View style={styles.heroContent}>
             <Text style={styles.heroSubHeader}>{lemonConstants.chicago}</Text>
-            <Text style={styles.heroIntroText}>
-              {lemonConstants.intro}
-            </Text>
+            <Text style={styles.heroIntroText}>{lemonConstants.intro}</Text>
           </View>
           <Image
             style={styles.heroImage}
@@ -227,15 +254,15 @@ const Home = ({ navigation }) => {
       </View>
 
       <View style={styles.menuContainer}>
-      <SectionList
-        style={styles.sectionList}
-        sections={data}
-        keyExtractor={item => item.id}
-        renderItem={renderItem}
-        renderSectionHeader={({ section: { name } }) => (
-          <Text style={styles.itemHeader}>{name}</Text>
-        )}
-      />
+        <SectionList
+          style={styles.sectionList}
+          sections={data}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          renderSectionHeader={({ section: { name } }) => (
+            <Text style={styles.itemHeader}>{name}</Text>
+          )}
+        />
       </View>
     </SafeAreaView>
   );
@@ -262,7 +289,7 @@ const styles = StyleSheet.create({
   header: {
     padding: 12,
     flexDirection: "row",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   hero: {
     backgroundColor: "#495e57",

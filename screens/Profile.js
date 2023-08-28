@@ -1,13 +1,21 @@
-import React, {useState, useEffect} from "react";
-import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, Image } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  Pressable,
+  Image,
+} from "react-native";
 import lemonConstants from "../utils/LemonConstants";
 import { StatusBar } from "expo-status-bar";
 import Avatar from "./Avatar";
 import CheckBox from "expo-checkbox";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import validator from 'validator';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import validator from "validator";
 import { useFonts } from "expo-font";
-import * as ImagePicker from 'expo-image-picker';
+import * as ImagePicker from "expo-image-picker";
 
 const Profile = ({ navigation }) => {
   const [firstName, onChangeFirstName] = useState("");
@@ -19,15 +27,21 @@ const Profile = ({ navigation }) => {
   const [phone, onChangePhone] = useState("");
   const [phoneIsValid, setPhoneValidated] = useState(false);
   const [orderStatusCheckBox, setOrderStatusCheckBoxToggle] = useState(false);
-  const [passwordChangesCheckBox, setPasswordChangesCheckBoxToggle] = useState(false);
-  const [specialOffersCheckBox, setSpecialOffersCheckBoxToggle] = useState(false);
+  const [passwordChangesCheckBox, setPasswordChangesCheckBoxToggle] =
+    useState(false);
+  const [specialOffersCheckBox, setSpecialOffersCheckBoxToggle] =
+    useState(false);
   const [newsletterCheckBox, setNewsletterCheckBoxToggle] = useState(false);
   const [profilePicture, onChangeProfilePicture] = useState(null);
   const [avatarInitials, setInitials] = useState("");
 
   const getUserData = async () => {
     try {
+      const jsonAuthValue = await AsyncStorage.getItem("user_auth");
       const jsonValue = await AsyncStorage.getItem("user_data");
+      if (jsonAuthValue) {
+        const userAuth = JSON.parse(jsonAuthValue);
+      }
       if (jsonValue) {
         const user = JSON.parse(jsonValue);
         onChangeFirstName(user.firstName);
@@ -43,29 +57,8 @@ const Profile = ({ navigation }) => {
       }
     } catch (error) {
       console.error("PROFILE: Error getting user data:", error);
-    }
-  };
-
-  const clearUserData = async () => {
-    const user = {
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
-      phone: "",
-      profilePicture: null,
-      orderStatus: false,
-      passwordChanges: false,
-      specialOffers: false,
-      newsletter: false,
-      avatarInitials: "",
-    };
-
-    try {
-      await AsyncStorage.setItem("user_data", JSON.stringify(user));
-    } catch (error) {
-      console.error("PROFILE: Error saving user data:", error);
     } finally {
-      navigation.navigate("Onboarding");
+      getUserAuth();
     }
   };
 
@@ -88,7 +81,35 @@ const Profile = ({ navigation }) => {
     } catch (error) {
       console.error("PROFILE: Error saving user data:", error);
     } finally {
-      navigation.navigate('Home');
+      navigation.navigate("Home");
+    }
+  };
+
+  const clearUserData = async () => {
+    const userAuth = {
+      isOnboarded: false,
+    };
+
+    const user = {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      profilePicture: null,
+      orderStatus: false,
+      passwordChanges: false,
+      specialOffers: false,
+      newsletter: false,
+      avatarInitials: "",
+    };
+
+    try {
+      await AsyncStorage.setItem("user_auth", JSON.stringify(userAuth));
+      await AsyncStorage.setItem("user_data", JSON.stringify(user));
+    } catch (error) {
+      console.error("PROFILE: Error saving user data:", error);
+    } finally {
+      navigation.navigate("Onboarding");
     }
   };
 
@@ -98,6 +119,17 @@ const Profile = ({ navigation }) => {
 
   const handleLogout = async () => {
     clearUserData();
+  };
+
+  const getUserAuth = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem("user_auth");
+      if (jsonValue) {
+        const userAuth = JSON.parse(jsonValue);
+      }
+    } catch (error) {
+      console.error("PROFILE: Error getting user Auth:", error);
+    }
   };
 
   const handleFirstNameChange = (text) => {
@@ -120,11 +152,10 @@ const Profile = ({ navigation }) => {
 
   const handleEmailChange = (text) => {
     onChangeEmail(text);
-   
+
     validator.isEmail(text)
       ? setEmailValidated(true)
       : setEmailValidated(false);
-
   };
 
   const handlePhoneChange = (text) => {

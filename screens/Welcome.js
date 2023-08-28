@@ -7,7 +7,7 @@ import { useFonts } from "expo-font";
 
 const Welcome = ({ navigation }) => {
   const [profilePicture, setProfilePicture] = useState(null);
-  const [firstName, setFirstName] = useState('');
+  const [firstName, setFirstName] = useState("");
   const isFocused = useIsFocused();
 
   const getUserData = async () => {
@@ -25,27 +25,25 @@ const Welcome = ({ navigation }) => {
 
   useEffect(() => {
     const backAction = () => {
-      return true; // or true to handle the back button press
+      return true;
     };
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       backAction
     );
-    // Clean up the event listener when the component unmounts
     return () => backHandler.remove();
   }, []);
-
 
   useEffect(() => {
     getUserData();
   }, [isFocused]);
 
   const handleProfileNav = async () => {
-    navigation.navigate('Profile');
+    navigation.navigate("Profile");
   };
 
   const handleHomeNav = async () => {
-    navigation.navigate('Home');
+    navigation.navigate("Home");
   };
 
   const [loaded] = useFonts({
@@ -59,7 +57,9 @@ const Welcome = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.welcomeText}>{(`${lemonConstants.congratulations} ${firstName} ${lemonConstants.youHaveRegistered}`)} </Text>
+      <Text style={styles.welcomeText}>
+        {`${lemonConstants.congratulations} ${firstName} ${lemonConstants.youHaveRegistered}`}{" "}
+      </Text>
       <Pressable
         onPress={handleHomeNav}
         style={styles.homeButton}
@@ -72,31 +72,30 @@ const Welcome = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-
-    container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    welcomeText: {
-        color: "#495E57",
-        fontWeight: 'bold',
-        textAlign: 'center',
-        fontSize: 36,
-        fontFamily: 'KarlaRegular'
-    },
-    homeButton: {
-        marginTop: 80,
-        backgroundColor: "#495E57",
-        padding: 12,
-        borderRadius:20
-    },
-    homeButtonText: {
-        color: 'white',
-        fontWeight: 'bold',
-        fontSize: 26,
-        fontFamily: 'KarlaRegular'
-    }
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  welcomeText: {
+    color: "#495E57",
+    fontWeight: "bold",
+    textAlign: "center",
+    fontSize: 36,
+    fontFamily: "KarlaRegular",
+  },
+  homeButton: {
+    marginTop: 80,
+    backgroundColor: "#495E57",
+    padding: 12,
+    borderRadius: 20,
+  },
+  homeButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 26,
+    fontFamily: "KarlaRegular",
+  },
 });
 
 export default Welcome;

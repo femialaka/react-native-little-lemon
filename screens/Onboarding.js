@@ -1,21 +1,55 @@
 import React, { useState, useEffect } from "react";
-import {StyleSheet,TextInput,Button,Text,View,Image,Pressable, ScrollView, SafeAreaView,KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard} from "react-native";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  StyleSheet,
+  TextInput,
+  Button,
+  Text,
+  View,
+  Image,
+  Pressable,
+  ScrollView,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import lemonConstants from "../utils/LemonConstants";
+import { useIsFocused } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import validator from 'validator';
+import validator from "validator";
 
-const Onboarding = ({navigation}) => {
+const Onboarding = ({ navigation }) => {
   const [firstName, onChangeFirstName] = useState("");
   const [firstNameIsValid, setFirstNameValidated] = useState(false);
   const [lastName, onChangeLastName] = useState("");
   const [lastNameIsValid, setLastNameValidated] = useState(false);
   const [email, onChangeEmail] = useState("");
   const [emailIsValid, setEmailValidated] = useState(false);
+  const isFocused = useIsFocused();
 
   const handleKeyboardDidHide = () => {
     //Keyboard was dismissed firstNameIsValid ${firstNameIsValid} emailIsValid ${emailIsValid}
   };
+
+  const getUserAuth = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem("user_auth");
+      if (jsonValue) {
+        const userAuth = JSON.parse(jsonValue);
+
+        if (userAuth.isOnboarded) {
+          navigation.navigate("Home");
+        }
+      }
+    } catch (error) {
+      console.error("ONBOARDING: Error getting user Auth:", error);
+    }
+  };
+
+  useEffect(() => {
+    getUserAuth();
+  }, [isFocused]);
 
   useEffect(() => {
     const keyboardDidHideListener = Keyboard.addListener(
@@ -69,7 +103,6 @@ const Onboarding = ({navigation}) => {
     validator.isEmail(text)
       ? setEmailValidated(true)
       : setEmailValidated(false);
-
   };
 
   const clearFormData = () => {
@@ -77,10 +110,9 @@ const Onboarding = ({navigation}) => {
     onChangeLastName("");
     onChangeEmail("");
     setEmailValidated(false);
-  }
+  };
 
   const handleNavigation = async () => {
-
     const user = {
       firstName: firstName,
       lastName: lastName,
@@ -91,17 +123,16 @@ const Onboarding = ({navigation}) => {
       passwordChanges: false,
       specialOffers: false,
       newsletter: false,
-      avatarInitials: ""
+      avatarInitials: "",
     };
-    
+
     try {
-      await AsyncStorage.setItem('user_data', JSON.stringify(user));
+      await AsyncStorage.setItem("user_data", JSON.stringify(user));
     } catch (error) {
-      console.error('Error saving user data:', error);
-    }
-    finally {
+      console.error("Error saving user data:", error);
+    } finally {
       clearFormData();
-      navigation.navigate('Welcome')
+      navigation.navigate("Welcome");
     }
   };
 
@@ -161,11 +192,8 @@ const Onboarding = ({navigation}) => {
       </View>
 
       <View style={styles.footer}>
-        {(firstNameIsValid && lastNameIsValid && emailIsValid) ? (
-          <Pressable
-            onPress={handleNavigation}
-            style={styles.buttonOn}
-            >
+        {firstNameIsValid && lastNameIsValid && emailIsValid ? (
+          <Pressable onPress={handleNavigation} style={styles.buttonOn}>
             <Text style={styles.buttonTextOn}>{lemonConstants.next}</Text>
           </Pressable>
         ) : (
@@ -250,7 +278,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 12,
     paddingBottom: 9,
-    fontFamily: 'KarlaRegular'
+    fontFamily: "KarlaRegular",
   },
   footer: {
     flex: 1,
