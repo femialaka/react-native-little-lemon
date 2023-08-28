@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from "react";
 import {StyleSheet,TextInput,Button,Text,View,Image,Pressable, ScrollView, SafeAreaView,KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard} from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import lemonConstants from "./LemonConstants";
 import { useFonts } from "expo-font";
 import validator from 'validator';
 
-const Onboarding = () => {
+const Onboarding = ({navigation}) => {
   const [firstName, onChangeFirstName] = useState("");
-  const [firstNameIsValid, setfirstNameValidated] = useState(false);
+  const [firstNameIsValid, setFirstNameValidated] = useState(false);
+  const [lastName, onChangeLastName] = useState("");
+  const [lastNameIsValid, setLastNameValidated] = useState(false);
   const [email, onChangeEmail] = useState("");
   const [emailIsValid, setEmailValidated] = useState(false);
 
   const handleKeyboardDidHide = () => {
-    console.log(
-      `Keyboard was dismissed firstNameIsValid ${firstNameIsValid} emailIsValid ${emailIsValid}`
-    );
-
-    console.log(`authenticated = ${firstNameIsValid && emailIsValid}`);
+    //Keyboard was dismissed firstNameIsValid ${firstNameIsValid} emailIsValid ${emailIsValid}
   };
 
   useEffect(() => {
@@ -27,8 +26,15 @@ const Onboarding = () => {
     return () => {
       keyboardDidHideListener.remove();
     };
-    //firstNameIsValid && emailIsValid ? setAuthenticated(true) : setAuthenticated(false);
   }, [firstNameIsValid, emailIsValid]);
+
+  const storeData = async (key, value) => {
+    try {
+      await AsyncStorage.setItem(key, value);
+    } catch (e) {
+      console.error(`error: ${e}`);
+    }
+  };
 
   const [loaded] = useFonts({
     MarkaziTextRegular: require("../assets/fonts/MarkaziTextRegular.ttf"),
@@ -41,40 +47,62 @@ const Onboarding = () => {
 
   const handleFirstNameChange = (text) => {
     onChangeFirstName(text);
-    console.log(`handleFirstNameChange.text = ${text}`);
-    const validNameRegex = /^[A-Za-z]+$/;
+    const validNameRegex = /^[A-Za-z ]+$/;
 
     text.length > 0 && validNameRegex.test(text)
-      ? setfirstNameValidated(true)
-      : setfirstNameValidated(false);
+      ? setFirstNameValidated(true)
+      : setFirstNameValidated(false);
+  };
 
-    console.log(
-      `firstNameIsValid = ${firstNameIsValid} text.length > 0 = ${
-        text.length > 0
-      } validNameRegex.test(text) = ${validNameRegex.test(text)}`
-    );
+  const handleLastNameChange = (text) => {
+    onChangeLastName(text);
+    const validNameRegex = /^[A-Za-z ]+$/;
+
+    text.length > 0 && validNameRegex.test(text)
+      ? setLastNameValidated(true)
+      : setLastNameValidated(false);
   };
 
   const handleEmailChange = (text) => {
     onChangeEmail(text);
-    console.log(
-      `handleEmailChange text = ${text} validator.isEmail(text) ${validator.isEmail(
-        text
-      )}`
-    );
+
     validator.isEmail(text)
       ? setEmailValidated(true)
       : setEmailValidated(false);
 
-    console.log(
-      `emailIsValid = ${emailIsValid}  validator.isEmail(text) = ${validator.isEmail(
-        text
-      )}`
-    );
   };
 
-  const handleNavigation = () => {
-    //firstNameIsValid && emailIsValid ? setAuthenticated(true) : setAuthenticated(false);
+  const clearFormData = () => {
+    onChangeFirstName("");
+    onChangeLastName("");
+    onChangeEmail("");
+    setEmailValidated(false);
+  }
+
+  const handleNavigation = async () => {
+
+    const user = {
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      phone: "",
+      profilePicture: null,
+      orderStatus: false,
+      passwordChanges: false,
+      specialOffers: false,
+      newsletter: false,
+      avatarInitials: ""
+    };
+    
+    try {
+      await AsyncStorage.setItem('user_data', JSON.stringify(user));
+    } catch (error) {
+      console.error('Error saving user data:', error);
+    }
+    finally {
+      clearFormData();
+      navigation.navigate('Welcome')
+    }
   };
 
   return (
@@ -108,6 +136,16 @@ const Onboarding = () => {
               onChangeText={handleFirstNameChange}
             />
           </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>{lemonConstants.lastName}</Text>
+            <TextInput
+              style={styles.input}
+              value={lastName}
+              autoCompleteType="name"
+              placeholder={lemonConstants.lastName}
+              onChangeText={handleLastNameChange}
+            />
+          </View>
 
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>{lemonConstants.email}</Text>
@@ -123,12 +161,11 @@ const Onboarding = () => {
       </View>
 
       <View style={styles.footer}>
-        {firstNameIsValid && emailIsValid ? (
+        {(firstNameIsValid && lastNameIsValid && emailIsValid) ? (
           <Pressable
-            onPress={() => handleNavigation}
+            onPress={handleNavigation}
             style={styles.buttonOn}
-            disabled={false}
-          >
+            >
             <Text style={styles.buttonTextOn}>{lemonConstants.next}</Text>
           </Pressable>
         ) : (
@@ -149,7 +186,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: "100%",
-    paddingTop: 40,
+    paddingTop: 30,
   },
 
   keyboardContainer: {
@@ -210,9 +247,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   inputLabel: {
-    fontWeight: "600",
+    fontWeight: "700",
     fontSize: 12,
     paddingBottom: 9,
+    fontFamily: 'KarlaRegular'
   },
   footer: {
     flex: 1,
